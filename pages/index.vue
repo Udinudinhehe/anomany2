@@ -12,16 +12,28 @@
         >
         <Textarea
           v-model="inputDashboard"
-          rows="10"
-          class="w-full border p-2 rounded mb-4 font-mono"
-          placeholder="Masukkan Event Dashboard (format: Event \t Count)"
-          id="text1"
+          ref="textareaRef"
+          @input="resize"
+          class="w-full border p-2 rounded mb-4 font-sans overflow-hidden"
+          placeholder="Masukkan Dashboard Event"
+          id="dashboardId"
         />
 
         <!-- Anomaly Input Section -->
         <h3 class="font-semibold mb-2">02. Input Manual Jam Anomaly</h3>
 
-        <label class="block mb-1">Jam anomaly:</label>
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <label class="block mb-1">First Time:</label>
+            <Input v-model="firstTime" placeholder="Misal: 02.00" />
+          </div>
+          <div class="flex-1">
+            <label class="block mb-1">Last Time:</label>
+            <Input v-model="lastTime" placeholder="Misal: 18.00" />
+          </div>
+        </div>
+
+        <label class="block mb-1">Pilih Jam Anomaly:</label>
         <Select v-model="jamAnomaly">
           <SelectTrigger class="w-full mb-2">
             <SelectValue placeholder="Masukkan Jam Anomaly" />
@@ -32,29 +44,26 @@
               <SelectItem value="16:00 - 18:00">16:00 - 18:00</SelectItem>
               <SelectItem value="18:00 - 20:00">18:00 - 20:00</SelectItem>
               <SelectItem value="22:00 - 24:00">22:00 - 24:00</SelectItem>
-              <SelectItem value="24:00 - 02:00">24:00 - 02:00</SelectItem>
+              <SelectItem value="24:00 - 00:00">24:00 - 00:00</SelectItem>
+              <SelectItem value="00:00 - 02:00">00:00 - 02:00</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
 
-        <label class="block mb-1 mt-2">First Time:</label>
-        <Input v-model="firstTime" placeholder="Misal: 02.00" class="mb-2" />
-
-        <label class="block mb-1">Last Time:</label>
-        <Input v-model="lastTime" placeholder="Misal: 18.00" />
+       
       </div>
 
       <!-- KANAN -->
       <div>
         <!-- Textarea 2 -->
         <label for="text2" class="font-semibold block mb-1"
-          >03. Input Detail Event</label
+          >03. Input Security Event</label
         >
         <Textarea
           v-model="inputDetail"
           rows="10"
-          class="w-full border p-2 rounded mb-4 font-mono"
-          placeholder="Masukkan Detail Event (format key-value)"
+          class="w-full border p-2 rounded mb-4 font-sans"
+          placeholder="Masukkan Security Event"
           id="text2"
         />
 
@@ -65,8 +74,8 @@
         <Textarea
           v-model="inputIPReputation"
           rows="10"
-          class="w-full border p-2 rounded mb-4 font-mono"
-          placeholder="Masukkan Data IP Reputation Intelligence (format key-value)"
+          class="w-full border p-2 rounded mb-4 font-sans"
+          placeholder="Masukkan Data IP Reputation Intelligence"
           id="text3"
         />
 
@@ -78,23 +87,34 @@
         </Alert>
 
         <Button
+          variant="outline"
           :disabled="!isFormValid"
           :class="[
-            'px-4 py-2 rounded w-full transition-colors',
+            'transition-colors',
             isFormValid
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
               : 'bg-gray-400 text-white cursor-not-allowed',
           ]"
           @click="handleGenerateClick"
         >
-          Generate
+          <Send /> Generate
+        </Button>
+        <Button
+          variant="destructive"
+          class="mt-2 mx-3 cursor-pointer"
+          @click="handleResetForm"
+        >
+          <Trash /> Reset Form
         </Button>
       </div>
     </div>
 
     <!-- Caption Result -->
     <div class="mt-3">
-      <h1 class="font-bold my-2">Hasil Result</h1>
+      <div class="flex items-center gap-2">
+        <MessageCircleMore stroke-width="1" />
+        <h1 class="font-bold my-2">Hasil Generate</h1>
+      </div>
     </div>
     <hr />
     <div
@@ -127,11 +147,7 @@
         class="p-4 border rounded bg-gray-100 leading-relaxed"
       >
         <h2 class="font-semibold mb-2">Caption 2:</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          @click="copyToClipboard(caption1)"
-        >
+        <Button variant="outline" size="sm" @click="copyToClipboard(caption1)">
           Copy
         </Button>
         <p>{{ caption1 }}</p>
@@ -142,13 +158,15 @@
         class="p-4 border rounded bg-gray-100 leading-relaxed"
       >
         <h2 class="font-semibold mb-2">Caption 3:</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          @click="copyToClipboard(caption2)"
-        >
-          Copy
-        </Button>
+        <div class="flex items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            @click="copyToClipboard(caption2)"
+          >
+            Copy
+          </Button>
+        </div>
         <p
           v-for="(line, index) in caption2.split('\n')"
           :key="index"
@@ -166,6 +184,7 @@
         <Button
           variant="outline"
           size="sm"
+          class="cursor-pointer"
           @click="copyToClipboard(caption3)"
         >
           Copy
@@ -183,10 +202,18 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "vue-sonner";
+import { MessageCircleMore } from "lucide-vue-next";
+import { Trash } from "lucide-vue-next";
+import { Send } from "lucide-vue-next";
+
+import "vue-sonner/style.css";
+import "zone.js";
+
 import {
   Select,
   SelectContent,
@@ -209,7 +236,16 @@ const jamAnomaly = ref("");
 const firstTime = ref("");
 const lastTime = ref("");
 const showAlert = ref(false);
+const textareaRef = ref(null);
 
+const resize = () => {
+  const el = textareaRef.value;
+  if (el) {
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }
+};
+// Form Valid
 const isFormValid = computed(() => {
   return (
     inputDashboard.value.trim() !== "" &&
@@ -263,7 +299,7 @@ const generateCaption = () => {
 
   if (attackData.length > 0) {
     const attackEvents = attackData
-      .map((item) => `**${item.name}** sebanyak ${item.count} sessions`)
+      .map((item) => `*${item.name}* sebanyak ${item.count} sessions`)
       .join(", ");
     caption1.value = `Setelah dilakukan pengecekan pada dashboard WAF Policies dan Security Rules, insiden anomali tersebut memicu WAF dengan jenis Incident ${attackEvents}.`;
   }
@@ -321,7 +357,7 @@ const generateCaption = () => {
     detailData["Source IP"] &&
     eventTypes.length > 0
   ) {
-    const country = ipRepData["Origin country"] || "-";
+    const country = ipRepData["Country"] || "-";
     const city = ipRepData["City"] || "-";
     const asn = ipRepData["ASN"] || "-";
     const riskScore = ipRepData["Risk score"] || "-";
@@ -343,18 +379,39 @@ const generateCaption = () => {
   const domain = detailData["Website"] || "-";
 
   if (jamAnomaly.value && firstTime.value && lastTime.value && domain !== "-") {
-    anomalyCaption.value = `\u26a0\ufe0fANOMALY TRAFFIC ALERT NOTIFICATION\u26a0\ufe0f\n\nDomain/Website : *${domain}*\n\nHari & Tanggal : *${tanggal}*\n\nJam : *${jamAnomaly.value}*\n\nUpdate alert notification anomaly traffic, pada jam *${firstTime.value} - ${lastTime.value} WIB* telah terjadi peningkatan blocking traffic requests overtime yang terjadi di domain *${domain}*.`;
+    const cleanDomain = domain.replace(/\s*\(.*?\)/g, "").trim();
+    anomalyCaption.value = `\u26a0\ufe0fANOMALY TRAFFIC ALERT NOTIFICATION\u26a0\ufe0f\n\nDomain/Website : *${cleanDomain}*\n\nHari & Tanggal : *${tanggal}*\n\nJam : *${jamAnomaly.value}*\n\nUpdate alert notification anomaly traffic, pada jam *${firstTime.value} - ${lastTime.value} WIB* telah terjadi peningkatan blocking traffic requests overtime yang terjadi di domain *${cleanDomain}*.`;
   }
 };
 // Copy Caption
-const copyToClipboard = (text) => {
-  navigator.clipboard
-    .writeText(text)
-    .then(() => {
-      console.log("Teks berhasil disalin");
-    })
-    .catch((err) => {
-      console.error("Gagal menyalin teks: ", err);
-    });
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success("Caption Berhasil di Salin Ke Clipboard.");
+  } catch (error) {
+    toast.error("Gagal Menyalin Caption");
+    console.error(error);
+  }
+};
+//Reset Form
+const handleResetForm = () => {
+  inputDashboard.value = "";
+  inputDetail.value = "";
+  inputIPReputation.value = "";
+  caption1.value = "";
+  caption2.value = "";
+  caption3.value = "";
+  anomalyCaption.value = "";
+  jamAnomaly.value = "";
+  firstTime.value = "";
+  lastTime.value = "";
+  showAlert.value = false;
+
+  // Auto resize textarea jika diperlukan
+  if (textareaRef.value) {
+    textareaRef.value.style.height = "auto";
+  }
+
+  toast.success("Form berhasil di-reset!");
 };
 </script>
