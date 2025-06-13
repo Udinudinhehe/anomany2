@@ -1,13 +1,16 @@
 <template>
   <div class="max-w-6xl mx-auto p-6">
-    <h2 class="text-xl font-bold mb-4">Auto Generate Caption</h2>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-xl font-bold uppercase font-inter">Auto Generate Caption</h2>
+      <JamDigital />
+    </div>
     <hr class="mb-4" />
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- KIRI -->
       <div>
         <!-- Textarea 1 -->
-        <label for="text1" class="font-semibold block mb-1"
+        <label for="text1" class="font-semibold font-inter block mb-1"
           >01. Input Event Dashboard</label
         >
         <Textarea
@@ -20,20 +23,20 @@
         />
 
         <!-- Anomaly Input Section -->
-        <h3 class="font-semibold mb-2">02. Input Manual Jam Anomaly</h3>
+        <h3 class="font-semibold font-inter mb-2">02. Input Manual Jam Anomaly</h3>
 
         <div class="flex gap-4">
           <div class="flex-1">
-            <label class="block mb-1">First Time:</label>
+            <label class="block font-inter mb-1">First Time:</label>
             <Input v-model="firstTime" placeholder="Misal: 02.00" />
           </div>
           <div class="flex-1">
-            <label class="block mb-1">Last Time:</label>
+            <label class="block font-inter mb-1">Last Time:</label>
             <Input v-model="lastTime" placeholder="Misal: 18.00" />
           </div>
         </div>
 
-        <label class="block mb-1">Pilih Jam Anomaly:</label>
+        <label class="block font-inter mb-1 mt-3">Pilih Jam Anomaly:</label>
         <Select v-model="jamAnomaly">
           <SelectTrigger class="w-full mb-2">
             <SelectValue placeholder="Masukkan Jam Anomaly" />
@@ -41,22 +44,29 @@
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Jam Anomaly</SelectLabel>
-              <SelectItem value="16:00 - 18:00">16:00 - 18:00</SelectItem>
-              <SelectItem value="18:00 - 20:00">18:00 - 20:00</SelectItem>
-              <SelectItem value="22:00 - 24:00">22:00 - 24:00</SelectItem>
-              <SelectItem value="24:00 - 00:00">24:00 - 00:00</SelectItem>
+              <SelectItem value="13:00 - 15:00">13:00 - 15:00</SelectItem>
+              <SelectItem value="15:00 - 17:00">15:00 - 17:00</SelectItem>
+              <SelectItem value="17:00 - 19:00">17:00 - 19:00</SelectItem>
+              <SelectItem value="19:00 - 21:00">19:00 - 21:00</SelectItem>
+              <SelectItem value="23:00 - 00:00">23:00 - 00:00</SelectItem>
               <SelectItem value="00:00 - 02:00">00:00 - 02:00</SelectItem>
+              <SelectItem value="02:00 - 04:00">02:00 - 04:00</SelectItem>
+              <SelectItem value="04:00 - 06:00">04:00 - 06:00</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
-
-       
+        <hr />
+        <b>Notes :</b>
+        <ol>
+          <li>Lengkapi semua data ! (Wajib)</li>
+          <li></li>
+        </ol>
       </div>
 
       <!-- KANAN -->
       <div>
         <!-- Textarea 2 -->
-        <label for="text2" class="font-semibold block mb-1"
+        <label for="text2" class="font-semibold font-inter block mb-1"
           >03. Input Security Event</label
         >
         <Textarea
@@ -68,7 +78,7 @@
         />
 
         <!-- Textarea 3 -->
-        <label for="text3" class="font-semibold block mb-1"
+        <label for="text3" class="font-semibold font-inter block mb-1"
           >04. Input IP Reputation Intelligence</label
         >
         <Textarea
@@ -90,7 +100,7 @@
           variant="outline"
           :disabled="!isFormValid"
           :class="[
-            'transition-colors',
+            'transition-colors font-inter',
             isFormValid
               ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
               : 'bg-gray-400 text-white cursor-not-allowed',
@@ -101,7 +111,7 @@
         </Button>
         <Button
           variant="destructive"
-          class="mt-2 mx-3 cursor-pointer"
+          class="mt-2 mx-3 cursor-pointer font-inter"
           @click="handleResetForm"
         >
           <Trash /> Reset Form
@@ -113,7 +123,7 @@
     <div class="mt-3">
       <div class="flex items-center gap-2">
         <MessageCircleMore stroke-width="1" />
-        <h1 class="font-bold my-2">Hasil Generate</h1>
+        <h1 class="font-bold font-inter my-2">Hasil Generate</h1>
       </div>
     </div>
     <hr />
@@ -125,14 +135,16 @@
         v-if="anomalyCaption"
         class="p-4 border rounded bg-yellow-100 leading-relaxed"
       >
-        <h2 class="font-semibold mb-2">Caption 1:</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          @click="copyToClipboard(anomalyCaption)"
-        >
-          Copy
-        </Button>
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold mb-2">Caption 1:</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            @click="copyToClipboard(anomalyCaption)"
+          >
+            Copy
+          </Button>
+        </div>
         <p
           v-for="(line, index) in anomalyCaption.split('\n')"
           :key="index"
@@ -146,10 +158,16 @@
         v-if="caption1"
         class="p-4 border rounded bg-gray-100 leading-relaxed"
       >
-        <h2 class="font-semibold mb-2">Caption 2:</h2>
-        <Button variant="outline" size="sm" @click="copyToClipboard(caption1)">
-          Copy
-        </Button>
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold mb-2">Caption 2:</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            @click="copyToClipboard(caption1)"
+          >
+            Copy
+          </Button>
+        </div>
         <p>{{ caption1 }}</p>
       </div>
 
@@ -157,8 +175,8 @@
         v-if="caption2"
         class="p-4 border rounded bg-gray-100 leading-relaxed"
       >
-        <h2 class="font-semibold mb-2">Caption 3:</h2>
-        <div class="flex items-center">
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold mb-2">Caption 3:</h2>
           <Button
             variant="outline"
             size="sm"
@@ -167,6 +185,7 @@
             Copy
           </Button>
         </div>
+
         <p
           v-for="(line, index) in caption2.split('\n')"
           :key="index"
@@ -180,15 +199,17 @@
         v-if="caption3"
         class="p-4 border rounded bg-gray-100 leading-relaxed"
       >
-        <h2 class="font-semibold mb-2">Caption 4:</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          class="cursor-pointer"
-          @click="copyToClipboard(caption3)"
-        >
-          Copy
-        </Button>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-semibold mb-2">Caption 4:</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            class="cursor-pointer"
+            @click="copyToClipboard(caption3)"
+          >
+            Copy
+          </Button>
+        </div>
         <p
           v-for="(line, index) in caption3.split('\n')"
           :key="index"
@@ -196,13 +217,25 @@
         >
           {{ line }}
         </p>
+
+        <!-- Risk Score Progressbar -->
+        <div v-if="riskScore" class="flex items-center space-x-4 mt-2">
+          <span class="font-semibold font-inter">RISK SCORE INDICATOR:</span>
+          <div class="flex-1 bg-gray-200 rounded-full h-4">
+            <div
+              class="h-4 rounded-full transition-all duration-500"
+              :class="riskColor"
+              :style="{ width: riskScore + '%' }"
+            ></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -213,7 +246,7 @@ import { Send } from "lucide-vue-next";
 
 import "vue-sonner/style.css";
 import "zone.js";
-
+import JamDigital from '@/components/JamDigital.vue'
 import {
   Select,
   SelectContent,
@@ -237,6 +270,7 @@ const firstTime = ref("");
 const lastTime = ref("");
 const showAlert = ref(false);
 const textareaRef = ref(null);
+const riskColor = ref("bg-green-500"); // default
 
 const resize = () => {
   const el = textareaRef.value;
@@ -306,7 +340,15 @@ const generateCaption = () => {
 
   const lines2 = inputDetail.value.trim().split("\n");
   const detailData = {};
-  const eventTypes = [];
+  const eventTypes = lines2
+    .filter((line) =>
+      /Security Rules|Illegal Resource Access|Bad Bots|DDoS|Bot Access Control|Cross Site Scripting|Blocked Country/.test(
+        line
+      )
+    )
+    .map((line) => line.replace(/\s*\(\d+\)/, "").trim());
+
+  const uniqueEventTypes = [...new Set(eventTypes)];
 
   for (let i = 0; i < lines2.length; i++) {
     const line = lines2[i].trim();
@@ -328,7 +370,7 @@ const generateCaption = () => {
   }
 
   if (eventTypes.length > 0) {
-    caption2.value = `Berikut adalah Detail Events dari Type *${eventTypes.join(
+    caption2.value = `Berikut adalah Detail Events dari Type *${uniqueEventTypes.join(
       "*, *"
     )}* tersebut sebagai berikut :\n\nClient Type : ${
       detailData["Client Type"] || "-"
@@ -342,13 +384,38 @@ const generateCaption = () => {
   }
 
   const ipReputationLines = inputIPReputation.value.trim().split("\n");
+  const rawEvents = ipReputationLines
+    .filter((line) =>
+      /Security Rules|Illegal Resource Access|Bad Bots|DDoS|Bot Access Control/.test(
+        line
+      )
+    )
+    .map((line) => line.replace(/\s*\(\d+\)/, "").trim());
+
+  const uniqueEvents = [...new Set(rawEvents)];
+
+  const allowedKeys = ["RISK SCORE", "Country", "City", "ASN"];
   const ipRepData = {};
+  const seenValues = new Set();
+
   for (let i = 0; i < ipReputationLines.length; i++) {
     const key = ipReputationLines[i].trim().replace(":", "");
     const value = ipReputationLines[i + 1]?.trim();
-    if (key && value) {
+
+    if (key === "RISK SCORE" && value) {
+      // Ambil hanya dua digit pertama, atau batasi max 100
+      const score = parseInt(value.toString().slice(0, 2));
+      if (!isNaN(score) && !seenValues.has(score)) {
+        ipRepData[key] = Math.min(score, 100); // pastikan tidak lebih dari 100
+        seenValues.add(score);
+        i++; // skip next line
+      }
+    }
+    // Untuk key lain
+    else if (allowedKeys.includes(key) && value && !seenValues.has(value)) {
       ipRepData[key] = value;
-      i++;
+      seenValues.add(value);
+      i++; // skip next line
     }
   }
 
@@ -360,12 +427,30 @@ const generateCaption = () => {
     const country = ipRepData["Country"] || "-";
     const city = ipRepData["City"] || "-";
     const asn = ipRepData["ASN"] || "-";
-    const riskScore = ipRepData["Risk score"] || "-";
+    const riskScore = parseInt(ipRepData["RISK SCORE"] || "0");
+
+    // Ganti computed dengan variabel biasa
+    let riskLevel = "-";
+    if (typeof riskScore === "number" && !isNaN(riskScore)) {
+      if (riskScore >= 90) riskLevel = "High";
+      else if (riskScore >= 60) riskLevel = "Medium";
+      else riskLevel = "Low";
+    }
+    const displayRiskScore = riskScore ? `${riskScore} (${riskLevel})` : "-";
+
     caption3.value = `Informasi dari Source IP *${
       detailData["Source IP"]
-    }* yang telah melakukan serangan *${eventTypes.join(
-      ", "
-    )}* berdasarkan IP Reputation Intelligence:\n\nCountry : ${country}\nCity : ${city}\nASN/ISP : ${asn}\nRisk Score : ${riskScore}`;
+    }* yang telah melakukan serangan *${uniqueEventTypes.join(
+      "*,*"
+    )}* berdasarkan IP Reputation Intelligence:\n\nCountry : ${country}\nCity : ${city}\nASN/ISP : ${asn}\nRisk Score : ${displayRiskScore}`;
+
+    // Tentukan warna jika ingin digunakan untuk progress bar
+    riskColor.value =
+      riskLevel === "High"
+        ? "bg-progress-danger"
+        : riskLevel === "Medium"
+        ? "bg-progress-medium"
+        : "bg-progress-low";
   }
 
   const rawDate = detailData["Time"] ? new Date(detailData["Time"]) : null;
