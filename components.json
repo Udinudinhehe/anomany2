@@ -16,10 +16,5 @@
     "ui": "@/components/ui",
     "lib": "@/lib"
   },
-  "iconLibrary": "lucide",
-  "cssVars":{
-    "theme": {
-      "font-sans":"Inter, sans-serif"
-    }
-  }
+  "iconLibrary": "lucide"
 }
