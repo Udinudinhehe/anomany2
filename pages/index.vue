@@ -106,8 +106,8 @@
           :class="[
             'transition-colors font-inter',
             isFormValid
-              ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
-              : 'bg-gray-400 text-white cursor-not-allowed',
+              ? 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white cursor-pointer'
+              : 'bg-slate-300 text-gray-500 cursor-not-allowed',
           ]"
           @click="handleGenerateClick"
         >
@@ -349,7 +349,7 @@ const generateCaption = () => {
   const detailData = {};
   const eventTypes = lines2
     .filter((line) =>
-      /Security Rules|Illegal Resource Access|Bad Bots|DDoS|Bot Access Control|Cross Site Scripting|Blocked Country/.test(
+      /Security Rules|Illegal Resource Access|Bad Bots|DDoS|Bot Access Control|Cross Site Scripting|Blocked Country|SQL Injection/.test(
         line
       )
     )
@@ -393,7 +393,7 @@ const generateCaption = () => {
   const ipReputationLines = inputIPReputation.value.trim().split("\n");
   const rawEvents = ipReputationLines
     .filter((line) =>
-      /Security Rules|Illegal Resource Access|Bad Bots|DDoS|Bot Access Control/.test(
+      /Security Rules|Illegal Resource Access|Bad Bots|DDoS|Bot Access Control|SQL Injection/.test(
         line
       )
     )
@@ -411,13 +411,25 @@ const generateCaption = () => {
 
     if (key === "RISK SCORE" && value) {
       // Ambil hanya dua digit pertama, atau batasi max 100
-      // const score = parseInt(value.toString().slice(0, 2));
-      const digits = value.toString().match(/\d{1,3}/g); // ambil grup angka 1-3 digit
-      const score = digits ? Math.min(parseInt(digits[digits.length - 1]), 100) : 0;
-      
-      if (!isNaN(score) && !seenValues.has(score)) {
-        ipRepData[key] = Math.min(score, 100); // pastikan tidak lebih dari 100
-        seenValues.add(score);
+      //const score = parseInt(value.toString().slice(0, 2));
+
+      // const digits = value.toString().match(/\d{1,2}/g);
+      // const scores = digits?.map(Number).filter((n) => n > 0 && n <= 100) || [];
+      // const score = scores.length > 0 ? Math.max(...scores): 0;
+
+      const valueStr = value.toString().replace(/\D/g, "");
+      let score = 0;
+
+      if (valueStr.length >= 4 && valueStr.length % 2 === 0) {
+        score = parseInt(valueStr.slice(0, valueStr.length / 2));
+      } else {
+        score = parseInt(valueStr.slice(0, 3));
+      }
+
+      score = !isNaN(score) ? Math.min(score, 100) : 0;
+
+      if (score > 0) {
+        ipRepData[key] = score;
         i++; // skip next line
       }
     }
@@ -429,39 +441,6 @@ const generateCaption = () => {
     }
   }
 
-  // if (
-  //   Object.keys(ipRepData).length > 0 &&
-  //   detailData["Source IP"] &&
-  //   eventTypes.length > 0
-  // ) {
-  //   const country = ipRepData["Country"] || "-";
-  //   const city = ipRepData["City"] || "-";
-  //   const asn = ipRepData["ASN"] || "-";
-  //   const riskScore = parseInt(ipRepData["RISK SCORE"] || "0");
-
-  //   // Ganti computed dengan variabel biasa
-  //   let riskLevel = "-";
-  //   if (typeof riskScore === "number" && !isNaN(riskScore)) {
-  //     if (riskScore >= 90) riskLevel = "High";
-  //     else if (riskScore >= 60) riskLevel = "Medium";
-  //     else riskLevel = "Low";
-  //   }
-  //   const displayRiskScore = riskScore ? `${riskScore} (${riskLevel})` : "-";
-
-  //   caption3.value = `Informasi dari Source IP *${
-  //     detailData["Source IP"]
-  //   }* yang telah melakukan serangan *${uniqueEventTypes.join(
-  //     "*,*"
-  //   )}* berdasarkan IP Reputation Intelligence:\n\nCountry : ${country}\nCity : ${city}\nASN/ISP : ${asn}\nRisk Score : ${displayRiskScore}`;
-
-  //   // Tentukan warna jika ingin digunakan untuk progress bar
-  //   riskColor.value =
-  //     riskLevel === "High"
-  //       ? "bg-progress-danger"
-  //       : riskLevel === "Medium"
-  //       ? "bg-progress-medium"
-  //       : "bg-progress-low";
-  // }
   if (
     Object.keys(ipRepData).length > 0 &&
     detailData["Source IP"] &&
@@ -470,20 +449,22 @@ const generateCaption = () => {
     const country = ipRepData["Country"] || "-";
     const city = ipRepData["City"] || "-";
     const asn = ipRepData["ASN"] || "-";
+    const riskScore = parseInt(ipRepData["RISK SCORE"] || "0");
 
-    const riskRaw = String(ipRepData["RISK SCORE"] || "0").trim();
-    console.log("RISK RAW VALUE:", riskRaw);
-    const matched = riskRaw.match(/\d{1,3}/);
-    const riskScore = matched ? parseInt(matched[0]) : 0;
-
+    // Ganti computed dengan variabel biasa
     let riskLevel = "-";
-    if (!isNaN(riskScore)) {
-      if (riskScore >= 90) riskLevel = "High";
-      else if (riskScore >= 60) riskLevel = "Medium";
-      else riskLevel = "Low";
-    }
+    if (riskScore >= 90) riskLevel = "High";
+    else if (riskScore >= 60) riskLevel = "Medium";
+    else if (riskScore > 0) riskLevel = "Low";
 
-    const displayRiskScore = riskScore ? `${riskScore} (${riskLevel})` : "-";
+    // if (typeof riskScore === "number" && !isNaN(riskScore)) {
+    //   if (riskScore >= 90) riskLevel = "High";
+    //   else if (riskScore >= 60) riskLevel = "Medium";
+    //   else riskLevel = "Low";
+    // }
+
+    const displayRiskScore =
+      riskScore > 0 ? `${riskScore} (${riskLevel})` : "-";
 
     caption3.value = `Informasi dari Source IP *${
       detailData["Source IP"]
@@ -491,6 +472,7 @@ const generateCaption = () => {
       "*,*"
     )}* berdasarkan IP Reputation Intelligence:\n\nCountry : ${country}\nCity : ${city}\nASN/ISP : ${asn}\nRisk Score : ${displayRiskScore}`;
 
+    // Tentukan warna jika ingin digunakan untuk progress bar
     riskColor.value =
       riskLevel === "High"
         ? "bg-progress-danger"
